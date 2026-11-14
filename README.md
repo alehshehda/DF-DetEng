@@ -1,7 +1,7 @@
 # Post-Infection Analysis of RAM Artifacts and System Logs for Detection Engineering
 
-[![View PDF](https://img.shields.io/badge/View-PDF-blue?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](https://alehshehda.github.io/DF-project/DF-project.pdf)
-[![Download PDF](https://img.shields.io/badge/Download-PDF-success?style=for-the-badge&logo=github&logoColor=white)](https://github.com/alehshehda/DF-project/releases/download/latest/DF-project.pdf)
+[![View PDF](https://img.shields.io/badge/View-PDF-blue?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](https://alehshehda.github.io/DF-DetEng/DF-DetEng.pdf)
+[![Download PDF](https://img.shields.io/badge/Download-PDF-success?style=for-the-badge&logo=github&logoColor=white)](https://github.com/alehshehda/DF-DetEng/releases/download/latest/DF-DetEng.pdf)
 
 Project documentation for the **Digital Forensics** course (*Informatyka śledcza*) at Wrocław University of Science and Technology, Faculty of Information and Communication Technology (Cybersecurity).
 
@@ -41,4 +41,4 @@ logos/                                university logos
 
 ## Build
 
-The document is automatically compiled to `DF-project.pdf` and published to GitHub Releases and GitHub Pages via the GitHub Actions CI/CD workflow (`.github/workflows/compile.yml`) on every push to `main`.
+The document is automatically compiled to `DF-DetEng.pdf` and published to GitHub Releases and GitHub Pages via the GitHub Actions CI/CD workflow (`.github/workflows/compile.yml`) on every push to `main`.

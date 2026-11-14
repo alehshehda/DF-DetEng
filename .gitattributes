@@ -1,24 +1,14 @@
-# Automatic text file detection and enforced LF line endings (Overleaf / Linux / macOS / Windows compatibility)
+# Jednolite końce linii LF (spójność między Windows, Linux i Overleaf)
 * text=auto eol=lf
 
-# LaTeX, BibTeX, and documentation files
-*.tex text eol=lf diff=tex
+*.tex text eol=lf
 *.bib text eol=lf
 *.bst text eol=lf
-*.sty text eol=lf
-*.cls text eol=lf
 *.md  text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
-.gitignore text eol=lf
-.gitattributes text eol=lf
-.gitkeep text eol=lf
 
-# Binary files (images and PDFs) - disable line-ending conversion and text diffs
-*.pdf  binary
+# Pliki binarne
 *.png  binary
 *.jpg  binary
 *.jpeg binary
+*.pdf  binary
 *.eps  binary
-*.ico  binary
-*.zip  binary
