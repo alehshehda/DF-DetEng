@@ -1,81 +1,43 @@
 \chapter{Wprowadzenie}\label{ch:wprowadzenie}
 
-\section{Kontekst techniczny i geneza projektu}\label{sec:kontekst_technologiczny}
+\section{Tło techniczne}\label{sec:tlo_techniczne}
 
-Analizowane próbki złośliwego oprogramowania i trojanów zdalnego dostępu często wykorzystują techniki omijania mechanizmów obronnych. Dominują podejścia bezplikowe, wykorzystujące wbudowane narzędzia systemowe (\textit{Living off the Land Binaries}, LOLBins) oraz wyrafinowane manipulacje pamięcią operacyjną procesu. Do standardowych technik adwersarzy należą:
+Współczesne złośliwe oprogramowanie, takie jak trojany zdalnego dostępu (RAT) oraz programy wykradające dane (Infostealer), powszechnie wykorzystuje techniki omijania klasycznych mechanizmów obronnych. Zamiast zapisywać pliki wykonywalne bezpośrednio na dysku, atakujący opierają wykonanie na wbudowanych narzędziach systemowych (\textit{Living off the Land Binaries}, LOLBins) oraz bezpośredniej manipulacji pamięcią operacyjną procesów. Do najczęściej spotykanych technik należą:
 \begin{itemize}
-    \item \textbf{Wstrzykiwanie kodu (\textit{Process Injection}):} bezpośrednia alokacja pamięci wirtualnej i zapis kodu maszynowego do przestrzeni adresowej obcego procesu za pomocą natywnego interfejsu systemu Windows.
-    \item \textbf{Drążenie procesów (\textit{Process Hollowing}):} powołanie legalnego procesu systemowego (np. \code{svchost.exe}, \code{explorer.exe}) w stanie zawieszenia, odmapowanie jego sekcji kodu oraz załadowanie złośliwego obrazu PE przed wznowieniem głównego wątku.
-    \item \textbf{Refleksywne ładowanie bibliotek (\textit{Reflective DLL Injection}):} ładowanie modułów dynamicznych bezpośrednio z bufora pamięci RAM bez interakcji z menedżerem ładowania systemu i bez rejestracji w strukturach modułów procesu.
+    \item \textbf{Wstrzykiwanie kodu (\textit{Process Injection}):} alokacja pamięci wirtualnej w przestrzeni adresowej innego, działającego procesu i zapisanie w niej złośliwego ładunku wraz z uruchomieniem zdalnego wątku.
+    \item \textbf{Drążenie procesów (\textit{Process Hollowing}):} utworzenie legalnego procesu systemowego (np. \code{svchost.exe}, \code{explorer.exe}) w stanie zawieszonym, usunięcie jego oryginalnej sekcji kodu z pamięci i zastąpienie jej obrazem złośliwego programu przed wznowieniem wykonania.
+    \item \textbf{Refleksyjne ładowanie bibliotek (\textit{Reflective DLL Injection}):} ładowanie biblioteki DLL bezpośrednio z bufora pamięci RAM przez własny kod inicjalizujący, z pominięciem standardowego menedżera ładowania systemu Windows i bez rejestracji modułu na liście załadowanych bibliotek procesu.
 \end{itemize}
 
-W konsekwencji tradycyjne platformy antywirusowe bazujące na sygnaturach dyskowych wykazują wysoką nieskuteczność. Najbardziej wiarygodnym źródłem wiedzy o kompromitacji stacji staje się pamięć RAM zawierająca odszyfrowane ładunki binarne oraz telemetria niskopoziomowa generowana w czasie rzeczywistym przez Sysmon. Połączenie tych elementów stanowi fundament nowoczesnej inżynierii detekcji.
+W rezultacie programy antywirusowe oparte na statycznych sygnaturach plikowych często nie wykrywają zagrożenia. Głównym źródłem danych o infekcji staje się pamięć RAM, w której znajdują się rozpakowane ładunki binarne i konfiguracje, oraz szczegółowe dzienniki zdarzeń systemowych rejestrujące zachowanie procesów w czasie rzeczywistym.
 
-\section{Problem inżynierski i motywacja}\label{sec:problem_badawczy}
+\section{Problem badawczy}\label{sec:problem_badawczy}
 
-Operacje cyberbezpieczeństwa (SOC/DFIR) zmagają się ze zjawiskiem przeciążenia alertami oraz nietrwałością wskaźników kompromitacji (IoC). Zgodnie z modelem Piramidy Bólu Davida Bianco, hashe oraz adresy IP serwerów C2 są trywialne do zneutralizowania przez atakującego poprzez rekompilację kodu bądź rotację domenową.
+Zespoły zajmujące się monitorowaniem bezpieczeństwa i reagowaniem na incydenty (SOC/DFIR) mierzą się z problemem niskiej trwałości prostych wskaźników kompromitacji (IoC). Zgodnie z modelem Piramidy Bólu Davida Bianco \cite{bianco2013pyramid}, sumy kontrolne plików czy adresy IP i domeny serwerów dowodzenia (C2) są bardzo łatwe do zmiany przez atakującego poprzez ponowne spakowanie pliku lub rotację infrastruktury sieciowej.
 
-Prawdziwą odporność systemów bezpieczeństwa zapewnia dopiero inżynieria wskaźników aktywności (IoA) oraz wzorców behawioralnych (TTP) skatalogowanych w matrycy MITRE ATT\&CK. Skuteczne modelowanie takich reguł wymaga jednak:
+Trwałą skuteczność detekcji daje dopiero identyfikacja wskaźników aktywności (IoA) oraz wzorców zachowań (TTP) sklasyfikowanych w bazie MITRE ATT\&CK \cite{mitre_attack}. Opracowanie takich reguł wymaga jednak połączenia dwóch uzupełniających się perspektyw:
 \begin{enumerate}
-    \item Odizolowanego środowiska badawczego z emulacją usług sieciowych, pozwalającego na wymuszenie pełnego łańcucha egzekucji bez ryzyka wycieku danych.
-    \item Zastosowania metodyki korelacji wieloźródłowej: powiązania punktowego stanu pamięci RAM z chronologiczną telemetrią zdarzeń systemowych.
-    \item Wytworzenia i rygorystycznej walidacji reguł w uniwersalnych formatach branżowych: YARA (analiza pamięci procesów) oraz Sigma (analityka logów zdarzeń).
+    \item analizy zrzutu pamięci RAM, która pokazuje stan procesów, wstrzyknięte sekcje kodu oraz niezaszyfrowane ciągi znaków w momencie infekcji,
+    \item analizy dzienników zdarzeń systemowych i ruchu sieciowego, które pozwalają odtworzyć chronologiczny przebieg ataku od uruchomienia próbki po utrwalenie obecności w systemie.
 \end{enumerate}
 
-\section{Cel i teza projektu}\label{sec:cele_projektu}
+Zestawienie obu tych źródeł pozwala tworzyć zarówno reguły wykrywające ładunki bezpośrednio w pamięci operacyjnej (YARA \cite{yara_docs}), jak i reguły wykrywające podejrzane sekwencje zdarzeń w logach systemowych (Sigma \cite{sigma_hq}).
 
-Głównym celem projektu jest zaprojektowanie i wdrożenie odizolowanego środowiska laboratoryjnego oraz opracowanie metodyki ekstrakcji i korelacji poinfekcyjnych artefaktów pamięci RAM i dzienników zdarzeń Windows w celu wytworzenia reguł detekcyjnych YARA i Sigma wraz z matrycą wskaźników IoC/IoA.
+\section{Cel i zakres projektu}\label{sec:cele_projektu}
+
+Głównym celem projektu jest zbudowanie odizolowanego środowiska laboratoryjnego oraz przeprowadzenie poinfekcyjnej analizy pamięci RAM i dzienników zdarzeń systemu Windows dla wybranych próbek złośliwego oprogramowania, zakończonej opracowaniem i weryfikacją reguł detekcyjnych YARA i Sigma oraz zestawieniem wskaźników IoC/IoA.
 
 Cele szczegółowe obejmują:
 \begin{enumerate}
-    \item \textbf{Architektura laboratorium:} wdrożenie odizolowanej podsieci z węzłem infekcyjnym Windows (zdeaktywowany Windows Defender/AMSI, utwardzony profil Sysmon) oraz bramą analityczną Linux (FakeNet-NG/INetSim do emulacji C2).
-    \item \textbf{Akwizycja i egzekucja próbek:} kontrolowana egzekucja próbek malware z repozytorium MalwareBazaar oraz automatyczny zrzut pamięci RAM wraz z eksportem dzienników \code{.evtx}.
-    \item \textbf{Analiza pamięci RAM:} identyfikacja anomalii w strukturach jądra i drzewie procesów, wykrycie iniekcji oraz ekstrakcja czystych ładunków binarnych za pomocą Volatility 3 i MemProcFS.
-    \item \textbf{Analiza i korelacja telemetrii:} rekonstrukcja łańcucha wykonania przy użyciu narzędzi Hayabusa i Chainsaw.
-    \item \textbf{Inżynieria detekcji i walidacja:} opracowanie autorskich reguł YARA i Sigma oraz zestawienie matrycy IoC/IoA.
+    \item konfigurację bezpiecznego środowiska wirtualnego z symulacją usług sieciowych i rozszerzonym logowaniem zdarzeń systemowych,
+    \item kontrolowane uruchomienie badanych próbek złośliwego oprogramowania oraz pobranie materiału dowodowego (zrzutu pamięci RAM, dzienników zdarzeń i zapisu ruchu sieciowego),
+    \item przeprowadzenie analizy pamięci operacyjnej oraz korelacji logów w celu rekonstrukcji przebiegu infekcji i wyodrębnienia wstrzykniętych ładunków,
+    \item przygotowanie i przetestowanie autorskich reguł detekcyjnych w formatach YARA oraz Sigma wraz ze zbiorczym zestawieniem wykrytych wskaźników kompromitacji i aktywności.
 \end{enumerate}
 
-\section{Zakres projektu i ograniczenia badawcze}\label{sec:zakres_projektu}
-
-Szczegółowy zakres prac zestawiono w tabeli \ref{tab:fazy_projektu}.
-
-\begin{table}[htbp]
-\centering
-\caption{Obszary realizacji projektu}
-\label{tab:fazy_projektu}
-\tablefont
-\begin{tabularx}{\linewidth}{L{4.8cm} Y}
-\toprule
-\hcell{Obszar} & \hcell{Zastosowane narzędzia i technologie} \\
-\midrule
-Architektura i separacja środowiska & Hiperwizor Type-2, sieć izolowana, FakeNet-NG, INetSim, PowerShell unhooking, profil Sysmon Modular \\
-\addlinespace
-Akwizycja i egzekucja & MalwareBazaar, analiza wstępna (Floss, PEstudio) \\
-\addlinespace
-Analiza pamięci RAM & Volatility 3, MemProcFS, deasemblacja zrzutów PE (Ghidra) \\
-\addlinespace
-Triage i korelacja & Chainsaw, Hayabusa, Sysmon, korelacja zdarzeń \\
-\addlinespace
-Inżynieria detekcji & YARA, Sigma, matryca IoC/IoA, MITRE ATT\&CK \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\subsection*{Ograniczenia i założenia projektowe}
+\subsection*{Zakres i założenia projektowe}
 \begin{itemize}
-    \item \textbf{System operacyjny:} Badania ograniczono do architektury x64 systemu Microsoft Windows 10/11.
-    \item \textbf{Izolacja sieciowa:} Brak bezpośredniego dostępu stacji infekcyjnej do sieci WAN. Cała interakcja sieciowa C2 jest emulowana.
-    \item \textbf{Faza analizy:} Projekt skupia się na analizie poinfekcyjnej - badaniu podlega egzekucja kodu, iniekcja do pamięci, persystencja oraz ruch sieciowy, z wyłączeniem modelowania wektorów wstępnego dostępu.
-\end{itemize}
-
-\section{Metodologia badawcza}\label{sec:metodologia}
-
-Projekt opiera się na cyklu inżynierii detekcji. Obejmuje on przejście od egzekucji złośliwego oprogramowania i rejestracji telemetrii, przez ekstrakcję artefaktów binarnych, po formalny zapis reguł i ich weryfikację.
-
-Główne grupy narzędziowe obejmują:
-\begin{itemize}
-    \item \textbf{Środowisko symulacji usług sieciowych:} Narzędzie FakeNet-NG przechwytujące zapytania DNS oraz sesje HTTP/HTTPS/TCP.
-    \item \textbf{Audyt telemetrii systemowej:} Zoptymalizowana konfiguracja usługi Sysmon, rejestrująca np. próby uzyskania dostępu do procesów (\code{ProcessAccess}), wątki zdalne (\code{CreateRemoteThread}) lub operacje w rejestrze.
-    \item \textbf{Ekstrakcja artefaktów RAM:} Narzędzie Volatility 3 do detekcji pamięci z uprawnieniami wykonywania bez powiązania z plikiem dyskowym oraz MemProcFS do mapowania struktur procesu.
-    \item \textbf{Silniki reguł detekcyjnych:} Silnik YARA do budowania reguł bazujących na nagłówkach PE i wzorcach bajtowych w pamięci RAM oraz silnik SigmaHQ do definiowania behawioralnych reguł korelacyjnych.
+    \item \textbf{System operacyjny:} badania dotyczą 64-bitowego systemu Microsoft Windows 10.
+    \item \textbf{Izolacja sieciowa:} środowisko jest całkowicie odcięte od sieci zewnętrznej (WAN), a komunikacja sieciowa złośliwego oprogramowania odbywa się wyłącznie z lokalnym serwerem symulującym usługi internetowe.
+    \item \textbf{Faza analizy:} projekt koncentruje się na analizie poinfekcyjnej - badane jest działanie próbki po jej uruchomieniu w systemie (wstrzykiwanie kodu, utrwalanie obecności, komunikacja sieciowa), z pominięciem sposobu dostarczenia pliku do ofiary.
 \end{itemize}

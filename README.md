@@ -25,13 +25,12 @@ config/
 preamble/                             packages, page styles, macros, and table settings
 frontmatter/
   titlepage.tex                       title page layout
-  abbreviations.tex                   list of abbreviations and acronyms
 chapters/
-  1_wprowadzenie.tex                  Introduction, research problem, scope, and methodology
-  2_architektura.tex                  Lab environment architecture and research methodology
-  3_studium_przypadku_1.tex           Case Study I - Post-infection analysis and detection engineering (Sample #1)
-  4_studium_przypadku_2.tex           Case Study II - Post-infection analysis and detection engineering (Sample #2)
-  5_podsumowanie.tex                  Summary, comparative analysis, and conclusions
+  1_wprowadzenie.tex                  Introduction, research problem, objectives, and scope
+  2_architektura.tex                  Lab environment and research methodology
+  3_studium_przypadku_1.tex           Sample I analysis and detection engineering
+  4_studium_przypadku_2.tex           Sample II analysis and detection engineering
+  5_podsumowanie.tex                  Summary, comparison of results, and conclusions
 bib/
   references.bib                      BibTeX bibliography database
   plabbrv-fixed.bst                   Polish bibliography style
