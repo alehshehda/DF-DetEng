@@ -2,7 +2,7 @@
 
 \section{Topologia sieci i wirtualizacja}\label{sec:topologia_wirtualizacja}
 
-Środowisko badawcze zostało zaprojektowane jako całkowicie odizolowana sieć wirtualna w środowisku \code{VMware Workstation}. Celem takiej konfiguracji jest uniemożliwienie wydostania się złośliwego kodu poza laboratorium przy jednoczesnym zapewnieniu próbkom odpowiedzi sieciowych niezbędnych do pełnego uruchomienia. Schemat połączeń w laboratorium przedstawiono na rysunku \ref{fig:topologia_lab}, natomiast konfigurację adresacji ujęto w tabeli \ref{tab:adresacja_sieciowa}.
+Środowisko badawcze zostało zaprojektowane jako całkowicie odizolowana sieć wirtualna w środowisku \code{VMware Workstation Pro}. Celem konfiguracji jest uniemożliwienie wydostania się złośliwego kodu z izolowanego środowiska, przy jednoczesnym zapewnieniu próbkom odpowiedzi sieciowych niezbędnych do pełnego uruchomienia. Schemat połączeń w laboratorium przedstawiono na rysunku \ref{fig:topologia_lab}, a konfigurację adresacji w tabeli \ref{tab:adresacja_sieciowa}.
 
 \Figure[0.85]{topology.png}{Topologia połączeń w odizolowanej sieci laboratoryjnej}{fig:topologia_lab}
 
@@ -21,12 +21,12 @@ Windows 10 x64 & \code{192.168.100.10} & Stacja ofiary & Uruchamianie badanych p
 \end{tabularx}
 \end{table}
 
-Komunikacja pomiędzy maszynami odbywa się w wydzielonym segmencie sieci wirtualnej (\code{VMnetX}) z wyłączonym serwerem DHCP, zablokowanym translatorem adresów (NAT) oraz odpiętym wirtualnym interfejsem hosta. Dzięki temu stacja ofiary widzi w sieci lokalnej wyłącznie bramę \code{REMnux}.
+Komunikacja pomiędzy maszynami odbywa się w wydzielonym segmencie sieci wirtualnej (\code{VMnetX}) z wyłączonym serwerem DHCP, zablokowanym NAT oraz odpiętym wirtualnym interfejsem hosta. Dzięki temu stacja ofiary widzi w sieci lokalnej wyłącznie bramę \code{REMnux}.
 
-Zastosowanie środowiska \code{VMware Workstation} zapewnia dwie korzyści istotne dla analizy śledczej:
+Zastosowanie środowiska \code{VMware Workstation Pro} zapewnia dwie korzyści istotne dla analizy śledczej:
 \begin{itemize}
     \item \textbf{Bezagentowa akwizycja pamięci RAM:} wstrzymanie maszyny wirtualnej lub wykonanie migawki zapisuje na dysku hosta surowy obraz pamięci fizycznej gościa (\code{.vmem}). Pozwala to pobrać zawartość pamięci RAM z zewnątrz, bez uruchamiania dodatkowych programów na zainfekowanej stacji i bez modyfikowania stanu jej procesów.
-    \item \textbf{Izolacja od hosta i maskowanie wirtualizacji:} na stacji ofiary zrezygnowano z instalacji pakietu dodatków \code{VMware Tools}, wyłączono współdzielenie schowka oraz folderów z systemem gospodarza, a w konfiguracji maszyny ograniczono widoczność podstawowych identyfikatorów wirtualizatora. Chroni to system hosta oraz zapobiega przedwczesnemu przerwaniu działania przez próbki wyposażone w proste mechanizmy wykrywania środowisk wirtualnych (\textit{Anti-VM}).
+    \item \textbf{Izolacja od hosta i maskowanie wirtualizacji:} na stacji ofiary zrezygnowano z instalacji pakietu dodatków \code{VMware Tools}, wyłączono współdzielenie schowka oraz folderów z systemem gospodarza, a w konfiguracji maszyny ograniczono widoczność podstawowych identyfikatorów wirtualizatora. Chroni to system hosta oraz zapobiega przedwczesnemu przerwaniu działania przez próbki wyposażone w mechanizmy wykrywania środowisk wirtualnych (\textit{Anti-VM}).
 \end{itemize}
 
 \section{Przygotowanie stacji Windows}\label{sec:konfiguracja_windows}
@@ -36,7 +36,7 @@ Na stacji ofiary z systemem \code{Windows 10 x64} wprowadzono zmiany konfiguracy
 W pierwszej kolejności wyłączono wbudowane mechanizmy ochronne, które mogłyby zablokować uruchomienie próbki lub usunąć jej komponenty w trakcie działania:
 \begin{itemize}
     \item dezaktywowano ochronę w czasie rzeczywistym, monitorowanie behawioralne oraz ochronę przed naruszeniami w usłudze \code{Windows Defender},
-    \item wyłączono blokady wykonywania skryptów \code{PowerShell} oraz skanowanie za pośrednictwem interfejsu \code{AMSI}, co pozwala na wykonanie obfuskowanych skryptów ładujących (\textit{loaders}),
+    \item wyłączono blokady wykonywania skryptów \code{PowerShell} oraz skanowanie za pośrednictwem interfejsu \code{AMSI}, co pozwala na wykonanie obfuskowanych skryptów ładujących,
     \item wyłączono zaporę systemową oraz usługę automatycznych aktualizacji, aby zapewnić swobodny ruch sieciowy w kierunku bramy \code{REMnux} i wyeliminować szum sieciowy generowany przez sam system operacyjny.
 \end{itemize}
 
@@ -49,15 +49,15 @@ W drugim kroku skonfigurowano rozszerzoną rejestrację zdarzeń. Standardowe dz
 \tablefont
 \begin{tabularx}{\linewidth}{c L{4.2cm} Y}
 \toprule
-\hcell{Event ID} & \hcell{Kategoria zdarzenia} & \hcell{Zastosowanie w analizie poinfekcyjnej} \\
+\hcell{Event ID} & \hcell{Kategoria zdarzenia} & \hcell{Zastosowanie w analizie} \\
 \midrule
 1 & ProcessCreate & Odtworzenie drzewa procesów, argumentów wiersza poleceń i użycia narzędzi LOLBins. \\
-3 & NetworkConnect & Powiązanie połączeń sieciowych TCP/UDP z konkretnym procesem (\code{PID}). \\
-7 & ImageLoad & Wykrywanie ładowania nietypowych bibliotek DLL przez procesy. \\
+3 & NetworkConnect & Powiązanie połączeń sieciowych z konkretnym procesem. \\
+7 & ImageLoad & Wykrywanie ładowania nietypowych bibliotek DLL. \\
 8 & CreateRemoteThread & Identyfikacja tworzenia zdalnych wątków przy wstrzykiwaniu kodu. \\
-10 & ProcessAccess & Wykrywanie otwierania pamięci obcych procesów (np. pod kątem iniekcji lub odczytu poświadczeń). \\
-11 & FileCreate & Rejestracja plików wykonywalnych i skryptów zrzucanych na dysk. \\
-12 / 13 & RegistryEvent & Śledzenie modyfikacji kluczy rejestru odpowiedzialnych za autostart. \\
+10 & ProcessAccess & Wykrywanie otwierania pamięci obcych procesów. \\
+11 & FileCreate & Rejestracja plików wykonywalnych i skryptów. \\
+12 / 13 & RegistryEvent & Śledzenie modyfikacji kluczy rejestru. \\
 22 & DNSEvent & Rejestracja zapytań o nazwy domenowe serwerów C2. \\
 \bottomrule
 \end{tabularx}
@@ -67,14 +67,14 @@ W drugim kroku skonfigurowano rozszerzoną rejestrację zdarzeń. Standardowe dz
 
 Druga maszyna wirtualna, pracująca pod kontrolą dystrybucji \code{REMnux}, pełni jednocześnie funkcję lokalnego emulatora sieci oraz stacji roboczej do analizy zebranego materiału dowodowego.
 
-Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem dowodzenia (C2). Na węźle \code{REMnux} skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy (\code{192.168.100.1}) i odpowiada na ruch przychodzący ze stacji ofiary:
+Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem C2. Na węźle \code{REMnux} skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy (\code{192.168.100.1}) i odpowiada na ruch przychodzący ze stacji ofiary:
 \begin{itemize}
     \item przekierowuje wszystkie zapytania DNS na adres bramy analitycznej,
     \item obsługuje połączenia HTTP oraz HTTPS (po uprzednim dodaniu certyfikatu urzędu certyfikacji \code{INetSim} do magazynu zaufanych urzędów na stacji Windows, co zapobiega odrzucaniu połączeń szyfrowanych),
-    \item przyjmuje połączenia na pozostałych standardowych portach usług aplikacyjnych (m.in. SMTP, FTP, surowe gniazda TCP).
+    \item przyjmuje połączenia na pozostałych standardowych portach usług aplikacyjnych.
 \end{itemize}
 
-Cały ruch przechodzący przez interfejs sieciowy węzła \code{REMnux} jest równolegle zapisywany do plików \code{.pcap} za pomocą narzędzia \code{tshark}. Zebrane zrzuty pamięci, dzienniki zdarzeń oraz pakiety sieciowe są następnie przetwarzane przy użyciu zestawu narzędzi podzielonego według zadań analitycznych (tabela \ref{tab:stos_narzedziowy}).
+Cały ruch przechodzący przez interfejs sieciowy węzła \code{REMnux} jest równolegle zapisywany do plików \code{.pcap} za pomocą narzędzia \code{tshark}. Zebrane zrzuty pamięci, dzienniki zdarzeń oraz pakiety sieciowe następnie przetwarzane przy użyciu zestawu narzędzi podzielonego według zadań analitycznych (tabela \ref{tab:stos_narzedziowy}).
 
 \begin{table}[htbp]
 \centering
@@ -91,18 +91,18 @@ Analiza pamięci RAM & Volatility \cite{volatility} & Przegląd listy procesów,
 \addlinespace
 Analiza logów zdarzeń & Hayabusa \cite{hayabusa_docs} & Szybkie przeszukiwanie plików \code{.evtx} za pomocą reguł detekcyjnych oraz generowanie chronologicznej osi czasu zdarzeń. \\
 \addlinespace
-Inżynieria detekcji (RAM i pliki) & YARA \cite{yara_docs} & Tworzenie i testowanie reguł dopasowujących wzorce bajtowe oraz tekstowe w zrzutach pamięci i wyodrębnionych plikach. \\
+Inżynieria detekcji & YARA \cite{yara_docs} & Tworzenie i testowanie reguł dopasowujących wzorce bajtowe oraz tekstowe w zrzutach pamięci i wyodrębnionych plikach. \\
 \addlinespace
-Inżynieria detekcji (logi) & Sigma \cite{sigma_hq} & Definiowanie reguł wykrywających szkodliwe zachowania na podstawie zdarzeń z dzienników systemowych i usługi Sysmon. \\
+Inżynieria detekcji & Sigma \cite{sigma_hq} & Tworzenie i testowanie reguł wykrywających zachowania na podstawie zdarzeń z dzienników systemowych i usługi Sysmon. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \section{Przebieg badania i walidacja reguł}\label{sec:przebieg_badania}
 
-Dla zachowania powtarzalności oraz spójności zebranych danych każda próbka złośliwego oprogramowania jest badana według tej samej, sześcioetapowej procedury przedstawionej w tabeli \ref{tab:cykl_badawczy}. Kolejność zabezpieczania artefaktów została ustalona zgodnie z zasadą kolejności ulotności (\textit{Order of Volatility}, RFC 3227 \cite{rfc3227}) - w pierwszej kolejności zamrażany jest stan maszyny wirtualnej i pobierany jest obraz pamięci RAM (\code{.vmem}), a dopiero w kolejnym kroku eksportowane są pliki dzienników z dysku (\code{.evtx}). Dzięki temu czynności związane z eksportem logów nie nadpisują zawartości pamięci operacyjnej.
+Dla zachowania powtarzalności oraz spójności zebranych danych każda próbka złośliwego oprogramowania jest badana według tej samej procedury przedstawionej w tabeli \ref{tab:cykl_badawczy}. Kolejność zabezpieczania artefaktów została ustalona zgodnie z zasadą kolejności ulotności (\textit{Order of Volatility}, RFC 3227 \cite{rfc3227}) - w pierwszej kolejności zamrażany jest stan maszyny wirtualnej i pobierany jest obraz pamięci RAM (\code{.vmem}), a dopiero w kolejnym kroku eksportowane są pliki dzienników z dysku (\code{.evtx}). Dzięki temu czynności związane z eksportem logów nie nadpisują zawartości pamięci operacyjnej.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \caption{Procedura przeprowadzenia eksperymentu i pobrania materiału dowodowego}
 \label{tab:cykl_badawczy}
@@ -115,18 +115,18 @@ Dla zachowania powtarzalności oraz spójności zebranych danych każda próbka 
 \addlinespace
 2 & Uruchomienie nasłuchu & Włączenie symulacji usług w \code{INetSim} oraz rozpoczęcie zapisu ruchu sieciowego w \code{tshark}. \\
 \addlinespace
-3 & Uruchomienie próbki & Przeniesienie badanej próbki na stację ofiary, jej uruchomienie oraz odczekanie na wykonanie operacji w pamięci, systemie plików i sieci. \\
+3 & Uruchomienie próbki & Przeniesienie badanej próbki na stację ofiary, jej uruchomienie oraz odczekanie na wykonanie operacji. \\
 \addlinespace
 4 & Zrzut pamięci RAM & Wstrzymanie maszyny wirtualnej lub utworzenie migawki z poziomu hiperwizora i zabezpieczenie pliku \code{.vmem} przed wykonaniem jakichkolwiek poleceń w systemie gościa. \\
 \addlinespace
-5 & Pobranie logów i ruchu & Zatrzymanie zapisu pliku \code{.pcap} na węźle REMnux oraz wyeksportowanie dzienników \code{.evtx} (Sysmon, Security, PowerShell) ze stacji Windows. \\
+5 & Pobranie logów i ruchu & Zatrzymanie zapisu pliku \code{.pcap} na węźle REMnux oraz wyeksportowanie dzienników \code{.evtx} ze stacji Windows. \\
 \addlinespace
-6 & Obliczenie sum kontrolnych & Wyznaczenie skrótów SHA-256 dla zebranych plików dowodowych (\code{.vmem}, \code{.evtx}, \code{.pcap}) i przekazanie ich do analizy. \\
+6 & Obliczenie sum kontrolnych & Wyznaczenie skrótów dla zebranych plików dowodowych (\code{.vmem}, \code{.evtx}, \code{.pcap}) i przekazanie ich do analizy. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Po zebraniu materiału dowodowego wyniki z poszczególnych źródeł są ze sobą łączone (korelacja). Punktem wspólnym pomiędzy zrzutem pamięci RAM, logami \code{Sysmon} oraz ruchem sieciowym \code{.pcap} są identyfikatory procesów (\code{PID} oraz \code{ProcessGuid}), numery portów i adresy sieciowe oraz znaczniki czasu w strefie UTC. Pozwala to powiązać konkretny proces widoczny w logach systemowych z wstrzykniętym do jego pamięci kodem oraz ruchem sieciowym, który ten proces wygenerował.
+Po zebraniu materiału dowodowego wyniki z poszczególnych źródeł są ze sobą łączone. Punktem wspólnym pomiędzy zrzutem pamięci RAM, logami \code{Sysmon} oraz ruchem sieciowym \code{.pcap} są identyfikatory procesów (\code{PID} oraz \code{ProcessGuid}), numery portów i adresy sieciowe oraz znaczniki czasu w strefie UTC. Pozwala to powiązać konkretny proces widoczny w logach systemowych z wstrzykniętym do jego pamięci kodem oraz ruchem sieciowym, który ten proces wygenerował.
 
 Na podstawie zidentyfikowanych artefaktów tworzone są reguły detekcyjne \code{YARA} oraz \code{Sigma}. Każda reguła podlega dwuetapowej weryfikacji:
 \begin{itemize}

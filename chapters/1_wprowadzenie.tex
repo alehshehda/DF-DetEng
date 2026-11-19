@@ -13,7 +13,7 @@ W rezultacie programy antywirusowe oparte na statycznych sygnaturach plikowych c
 
 \section{Problem badawczy}\label{sec:problem_badawczy}
 
-Zespoły zajmujące się monitorowaniem bezpieczeństwa i reagowaniem na incydenty (SOC/DFIR) mierzą się z problemem niskiej trwałości prostych wskaźników kompromitacji (IoC). Zgodnie z modelem Piramidy Bólu Davida Bianco \cite{bianco2013pyramid}, sumy kontrolne plików czy adresy IP i domeny serwerów dowodzenia (C2) są bardzo łatwe do zmiany przez atakującego poprzez ponowne spakowanie pliku lub rotację infrastruktury sieciowej.
+Zespoły zajmujące się monitorowaniem bezpieczeństwa i reagowaniem na incydenty (SOC/DFIR) mierzą się z problemem niskiej trwałości prostych wskaźników kompromitacji (IoC). Zgodnie z modelem Piramidy Bólu Davida Bianco \cite{bianco2013pyramid}, sumy kontrolne plików czy adresy IP i domeny serwerów C2 są bardzo łatwe do zmiany przez atakującego poprzez ponowne spakowanie pliku lub rotację infrastruktury sieciowej.
 
 Trwałą skuteczność detekcji daje dopiero identyfikacja wskaźników aktywności (IoA) oraz wzorców zachowań (TTP) sklasyfikowanych w bazie MITRE ATT\&CK \cite{mitre_attack}. Opracowanie takich reguł wymaga jednak połączenia dwóch uzupełniających się perspektyw:
 \begin{enumerate}
@@ -30,14 +30,14 @@ Głównym celem projektu jest zbudowanie odizolowanego środowiska laboratoryjne
 Cele szczegółowe obejmują:
 \begin{enumerate}
     \item konfigurację bezpiecznego środowiska wirtualnego z symulacją usług sieciowych i rozszerzonym logowaniem zdarzeń systemowych,
-    \item kontrolowane uruchomienie badanych próbek złośliwego oprogramowania oraz pobranie materiału dowodowego (zrzutu pamięci RAM, dzienników zdarzeń i zapisu ruchu sieciowego),
+    \item kontrolowane uruchomienie badanych próbek złośliwego oprogramowania oraz pobranie materiału dowodowego (zrzutu pamięci RAM, dzienników zdarzeń i ruchu sieciowego),
     \item przeprowadzenie analizy pamięci operacyjnej oraz korelacji logów w celu rekonstrukcji przebiegu infekcji i wyodrębnienia wstrzykniętych ładunków,
     \item przygotowanie i przetestowanie autorskich reguł detekcyjnych w formatach YARA oraz Sigma wraz ze zbiorczym zestawieniem wykrytych wskaźników kompromitacji i aktywności.
 \end{enumerate}
 
 \subsection*{Zakres i założenia projektowe}
 \begin{itemize}
-    \item \textbf{System operacyjny:} badania dotyczą 64-bitowego systemu Microsoft Windows 10.
+    \item \textbf{System operacyjny:} Microsoft Windows 10 x64.
     \item \textbf{Izolacja sieciowa:} środowisko jest całkowicie odcięte od sieci zewnętrznej (WAN), a komunikacja sieciowa złośliwego oprogramowania odbywa się wyłącznie z lokalnym serwerem symulującym usługi internetowe.
-    \item \textbf{Faza analizy:} projekt koncentruje się na analizie poinfekcyjnej - badane jest działanie próbki po jej uruchomieniu w systemie (wstrzykiwanie kodu, utrwalanie obecności, komunikacja sieciowa), z pominięciem sposobu dostarczenia pliku do ofiary.
+    \item \textbf{Faza analizy:} projekt koncentruje się na analizie poinfekcyjnej - badane jest działanie próbki po jej uruchomieniu w systemie, z pominięciem sposobu dostarczenia do ofiary.
 \end{itemize}
