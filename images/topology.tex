@@ -1,0 +1,41 @@
+% !tikz-libs: babel,positioning,arrows.meta,calc
+% Topologia połączeń w odizolowanej sieci laboratoryjnej (Windows 10 <-> VMnetX <-> REMnux).
+\begin{tikzpicture}[
+  >= {Stealth[length=2.2mm, width=1.5mm]}
+]
+
+  % --- 1. Ikony urządzeń Affinity (square_gray) ---
+  \node[iconnode] (win_icon) at (0,0) {\AffIcon[1.25cm]{sq_client}};
+  \node[iconnode, right=4.6cm of win_icon] (sw_icon) {\AffIcon[1.25cm]{sq_switch}};
+  \node[iconnode, right=4.6cm of sw_icon] (rem_icon) {\AffIcon[1.25cm]{sq_server}};
+
+  % --- 2. Czyste podpisy pod ikonami (bez ramek wokół tekstu) ---
+  \node[iconlabel, below=0.22cm of win_icon] (win_lbl) {%
+    \textbf{Stacja ofiary (Endpoint)}\\
+    \texttt{Windows 10 x64}\\
+    \texttt{192.168.100.10/24}%
+  };
+
+  \node[iconlabel, below=0.22cm of sw_icon] (sw_lbl) {%
+    \textbf{Przełącznik \texttt{VMnetX}}\\
+    {\color{acadMuted}Host-Only (brak NAT / DHCP)}%
+  };
+
+  \node[iconlabel, below=0.22cm of rem_icon] (rem_lbl) {%
+    \textbf{Brama i serwer analityczny}\\
+    \texttt{REMnux (Linux)}\\
+    \texttt{192.168.100.1/24} (\texttt{INetSim})%
+  };
+
+  % --- 3. Krawędzie połączeń ---
+  \draw[<->, thick, draw=acadInk] (win_icon.east) --
+    node[flowlabel, above=2pt] {Ruch próbki (DNS, HTTP/S)}
+    node[flowlabel, below=2pt, text=acadMuted] {\texttt{192.168.100.0/24}}
+    (sw_icon.west);
+
+  \draw[<->, thick, draw=acadInk] (sw_icon.east) --
+    node[flowlabel, above=2pt] {Emulacja usług (\texttt{INetSim})}
+    node[flowlabel, below=2pt, text=acadMuted] {Zapis ruchu (\texttt{tshark .pcap})}
+    (rem_icon.west);
+
+\end{tikzpicture}
