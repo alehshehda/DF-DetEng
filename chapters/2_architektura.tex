@@ -53,7 +53,7 @@ W pierwszej kolejności wyłączono wbudowane mechanizmy ochronne, które mogły
 
 W drugim kroku skonfigurowano rozszerzoną rejestrację zdarzeń. Standardowe dzienniki systemu Windows nie rejestrują szczegółowych operacji na procesach i pamięci, dlatego na stacji zainstalowano usługę \code{Sysmon} \cite{russinovich_sysmon} z konfiguracją opartą na profilu \code{Sysmon-Modular} \cite{sysmon_modular}. Zestawienie najważniejszych monitorowanych kategorii zdarzeń przedstawiono w tabeli \ref{tab:sysmon_events}. Dodatkowo włączono rejestrowanie treści wykonywanych bloków skryptowych \code{PowerShell} oraz zwiększono maksymalny rozmiar buforów dzienników zdarzeń (\code{.evtx}), aby zapobiec nadpisaniu logów podczas intensywnej aktywności próbki.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \caption{Główne kategorie zdarzeń monitorowane przez usługę Sysmon}
 \label{tab:sysmon_events}
@@ -80,7 +80,7 @@ Druga maszyna wirtualna, pracująca pod kontrolą wyspecjalizowanej dystrybucji 
 
 W pierwszej kolejności na węźle analitycznym skonfigurowano dedykowany interfejs sieciowy \code{ens33}, przypisując mu statyczny adres IP \code{192.168.100.1/24} (rysunek~\ref{fig:remnux_ip}), stanowiący bramę domyślną oraz serwer DNS dla stacji ofiary.
 
-\Figure[0.85]{remnux_ip_ens33.png}{Weryfikacja konfiguracji interfejsu sieciowego ens33 na węźle REMnux z adresem 192.168.100.1/24}{fig:remnux_ip}
+\Figure[0.70]{remnux_ip_ens33.png}{Weryfikacja konfiguracji interfejsu sieciowego ens33 na węźle REMnux z adresem 192.168.100.1/24}{fig:remnux_ip}
 
 Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem C2. Na węźle \code{REMnux} skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy (\code{192.168.100.1}) i odpowiada na ruch przychodzący ze stacji ofiary. W pliku konfiguracyjnym \file{/etc/inetsim/inetsim.conf}:
 \begin{itemize}
@@ -89,17 +89,35 @@ Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunk
     \item jawnie aktywowano niezbędne moduły aplikacyjne (\code{start\_service dns}, \code{http}, \code{https}, \code{smtp}, \code{ftp}, rysunek~\ref{fig:inetsim_conf_services}).
 \end{itemize}
 
-\Figure[0.65]{inetsim_conf_bind.png}{Konfiguracja adresu nasłuchu usług (service\_bind\_address) w pliku inetsim.conf}{fig:inetsim_conf_bind}
-
-\Figure[0.65]{inetsim_conf_dns.png}{Konfiguracja domyślnego adresu zwrotnego dla zapytań DNS (dns\_default\_ip) w pliku inetsim.conf}{fig:inetsim_conf_dns}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/inetsim_conf_bind.png}
+        \caption{Adres nasłuchu usług}\label{fig:inetsim_conf_bind}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/inetsim_conf_dns.png}
+        \caption{Domyślny zwrotny adres DNS}\label{fig:inetsim_conf_dns}
+    \end{subfigure}
+    \par\vspace{0.8em}
+    \begin{subfigure}[t]{0.50\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/inetsim_conf_services.png}
+        \caption{Aktywacja wymaganych modułów}\label{fig:inetsim_conf_services}
+    \end{subfigure}
+    \caption{Konfiguracja parametrów emulacji sieci w pliku \file{/etc/inetsim/inetsim.conf}}\label{fig:inetsim_conf}
+\end{figure}
 
 W celu zapewnienia bezkonfliktowego uruchomienia serwera DNS na porcie 53 UDP/TCP, na węźle \code{REMnux} wyłączono lokalną usługę \code{systemd-resolved} oraz dezaktywowano zaporę sieciową \code{ufw}. Prawidłowy start symulatora z aktywną obsługą DNS, protokołów webowych oraz pocztowych przedstawiono na rysunku~\ref{fig:inetsim_running}.
 
-\Figure[0.75]{inetsim_running_services.png}{Pomyślne uruchomienie symulatora INetSim na adresie 192.168.100.1 z aktywnym procesem DNS (PID 3806)}{fig:inetsim_running}
+\Figure[0.65]{inetsim_running_services.png}{Pomyślne uruchomienie symulatora INetSim na adresie 192.168.100.1 z aktywnym procesem DNS (PID 3806)}{fig:inetsim_running}
 
 Cały ruch przechodzący przez interfejs sieciowy węzła \code{REMnux} jest równolegle zapisywany do plików \code{.pcap} za pomocą narzędzia \code{tshark}. Zebrane zrzuty pamięci, dzienniki zdarzeń oraz pakiety sieciowe następnie przetwarzane przy użyciu zestawu narzędzi podzielonego według zadań analitycznych (tabela \ref{tab:stos_narzedziowy}).
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \caption{Zestaw narzędzi wykorzystywanych w analizie i inżynierii detekcji}
 \label{tab:stos_narzedziowy}
