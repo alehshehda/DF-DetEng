@@ -21,7 +21,7 @@ Windows 10 x64 & \code{192.168.100.10} & Stacja ofiary & Uruchamianie badanych p
 \end{tabularx}
 \end{table}
 
-Komunikacja pomiędzy maszynami odbywa się w wydzielonym, niestandardowym segmencie sieci wirtualnej \code{VMnet2} (\textit{Host-only}). W konfiguracji wirtualnego przełącznika (\file{Virtual Network Editor}, rysunek~\ref{fig:vmware_vnet}) wprowadzono następujące restrykcje:
+Komunikacja pomiędzy maszynami odbywa się w wydzielonym, niestandardowym segmencie sieci wirtualnej \code{VMnet2} (\textit{Host-only}). W konfiguracji wirtualnego przełącznika (\code{Virtual Network Editor}, rysunek~\ref{fig:vmware_vnet}) wprowadzono następujące restrykcje:
 \begin{itemize}
     \item wyłączono wbudowany serwer \code{DHCP} (\textit{Use local DHCP service to distribute IP address to VMs}), co wymusza statyczną alokację adresów IP i eliminuje niepożądany rozgłoszeniowy ruch sieciowy,
     \item odpięto wirtualny interfejs systemu gospodarza (\textit{Connect a host virtual adapter to this network}), uniemożliwiając bezpośrednią komunikację na poziomie warstwy L2/L3 pomiędzy badaną stacją a systemem fizycznym analityka,
