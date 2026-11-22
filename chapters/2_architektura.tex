@@ -145,7 +145,7 @@ W pierwszej kolejności na węźle analitycznym skonfigurowano dedykowany interf
 
 \Figure[0.70]{remnux_ip_ens33.png}{Weryfikacja konfiguracji interfejsu sieciowego ens33 na węźle REMnux z adresem 192.168.100.1/24}{fig:remnux_ip}
 
-Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem C2. Na węźle \code{REMnux} skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy (\code{192.168.100.1}) i odpowiada na ruch przychodzący ze stacji ofiary. W pliku konfiguracyjnym \file{/etc/inetsim/inetsim.conf}:
+Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem C2. Na węźle \code{REMnux} skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy (\code{192.168.100.1}) i odpowiada na ruch przychodzący ze stacji ofiary. W pliku konfiguracyjnym \code{/etc/inetsim/inetsim.conf}:
 \begin{itemize}
     \item powiązano nasłuch wszystkich symulowanych usług z adresem laboratoryjnym (\code{service\_bind\_address 192.168.100.1}, rysunek~\ref{fig:inetsim_conf_bind}),
     \item zdefiniowano fałszywy zwrotny adres w zapytaniach DNS (\code{dns\_default\_ip 192.168.100.1}, rysunek~\ref{fig:inetsim_conf_dns}), co wymusza przekierowanie całego ruchu domenowego generowanego przez próbkę na lokalny węzeł badawczy (\textit{DNS Sinkholing}),
@@ -171,7 +171,7 @@ Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunk
         \includegraphics[width=\linewidth]{images/inetsim_conf_services.png}
         \caption{Aktywacja wymaganych modułów}\label{fig:inetsim_conf_services}
     \end{subfigure}
-    \caption{Konfiguracja parametrów emulacji sieci w pliku \file{/etc/inetsim/inetsim.conf}}\label{fig:inetsim_conf}
+    \caption{Konfiguracja parametrów emulacji sieci w pliku \code{/etc/inetsim/inetsim.conf}}\label{fig:inetsim_conf}
 \end{figure}
 
 W celu zapewnienia bezkonfliktowego uruchomienia serwera DNS na porcie 53 UDP/TCP, na węźle \code{REMnux} wyłączono lokalną usługę \code{systemd-resolved} oraz dezaktywowano zaporę sieciową \code{ufw}. Prawidłowy start symulatora z aktywną obsługą DNS, protokołów webowych oraz pocztowych przedstawiono na rysunku~\ref{fig:inetsim_running}.
