@@ -1,3 +1,5 @@
+\providecommand{\file}[1]{\texttt{#1}}
+
 \chapter{Środowisko i metodyka}\label{ch:architektura_laboratorium}
 
 \section{Topologia sieci i wirtualizacja}\label{sec:topologia_wirtualizacja}
@@ -36,7 +38,7 @@ Obie maszyny wirtualne (\code{REMnux} oraz \code{Windows 10}) zostały przypisan
 
 Zastosowanie środowiska \code{VMware Workstation Pro} zapewnia dwie korzyści istotne dla analizy śledczej:
 \begin{itemize}
-    \item \textbf{Bezagentowa akwizycja pamięci RAM:} wstrzymanie maszyny wirtualnej lub wykonanie migawki zapisuje na dysku hosta surowy obraz pamięci fizycznej gościa (\code{.vmem}). Pozwala to pobrać zawartość pamięci RAM z zewnątrz, bez uruchamiania dodatkowych programów na zainfekowanej stacji i bez modyfikowania stanu jej procesów.
+    \item \textbf{Bezagentowa akwizycja pamięci RAM:} wstrzymanie maszyny wirtualnej lub wykonanie migawki zapisuje na dysku hosta surowy obraz pamięci fizycznej gościa (\file{.vmem}). Pozwala to pobrać zawartość pamięci RAM z zewnątrz, bez uruchamiania dodatkowych programów na zainfekowanej stacji i bez modyfikowania stanu jej procesów.
     \item \textbf{Izolacja od hosta i maskowanie wirtualizacji:} na stacji ofiary zrezygnowano z instalacji pakietu dodatków \code{VMware Tools}, wyłączono współdzielenie schowka oraz folderów z systemem gospodarza, a w konfiguracji maszyny ograniczono widoczność podstawowych identyfikatorów wirtualizatora. Chroni to system hosta oraz zapobiega przedwczesnemu przerwaniu działania przez próbki wyposażone w mechanizmy wykrywania środowisk wirtualnych (\textit{Anti-VM}).
 \end{itemize}
 
@@ -98,7 +100,7 @@ Następnie wyłączono wbudowane mechanizmy zabezpieczeń systemu operacyjnego (
     \caption{Dezaktywacja wbudowanych mechanizmów ochronnych i aktualizacji systemowych}\label{fig:win_sec_disabled}
 \end{figure}
 
-W kolejnym kroku skonfigurowano rozszerzoną rejestrację zdarzeń telemetrycznych. Standardowe dzienniki systemu Windows nie rejestrują szczegółowych operacji na procesach i pamięci, dlatego na stacji zainstalowano usługę \code{Sysmon} \cite{russinovich_sysmon} z konfiguracją opartą na profilu \code{Sysmon-Modular} \cite{sysmon_modular} (rysunek~\ref{fig:win_sysmon_inst}). Prawidłowy start sterownika \code{SysmonDrv} oraz rejestrację zdarzeń w dedykowanym kanale \code{Microsoft-Windows-Sysmon/Operational} potwierdzono w podglądzie zdarzeń (rysunek~\ref{fig:win_sysmon_log}). Zestawienie najważniejszych monitorowanych kategorii zdarzeń przedstawiono w tabeli \ref{tab:sysmon_events}. Dodatkowo włączono rejestrowanie treści wykonywanych bloków skryptowych \code{PowerShell} oraz zwiększono maksymalny rozmiar buforów dzienników zdarzeń (\code{.evtx}), aby zapobiec nadpisaniu logów podczas intensywnej aktywności próbki.
+W kolejnym kroku skonfigurowano rozszerzoną rejestrację zdarzeń telemetrycznych. Standardowe dzienniki systemu Windows nie rejestrują szczegółowych operacji na procesach i pamięci, dlatego na stacji zainstalowano usługę \code{Sysmon} \cite{russinovich_sysmon} z konfiguracją opartą na profilu \code{Sysmon-Modular} \cite{sysmon_modular} (rysunek~\ref{fig:win_sysmon_inst}). Prawidłowy start sterownika \code{SysmonDrv} oraz rejestrację zdarzeń w dedykowanym kanale \code{Microsoft-Windows-Sysmon/Operational} potwierdzono w podglądzie zdarzeń (rysunek~\ref{fig:win_sysmon_log}). Zestawienie najważniejszych monitorowanych kategorii zdarzeń przedstawiono w tabeli \ref{tab:sysmon_events}. Dodatkowo włączono rejestrowanie treści wykonywanych bloków skryptowych \code{PowerShell} oraz zwiększono maksymalny rozmiar buforów dzienników zdarzeń (\file{.evtx}), aby zapobiec nadpisaniu logów podczas intensywnej aktywności próbki.
 
 \begin{figure}[H]
     \centering
@@ -137,6 +139,24 @@ W kolejnym kroku skonfigurowano rozszerzoną rejestrację zdarzeń telemetryczny
 \end{tabularx}
 \end{table}
 
+W celu umożliwienia badania próbek wykorzystujących szyfrowaną komunikację SSL/TLS oraz emulacji usług sieciowych za pomocą \code{INetSim}, na stację ofiary pobrano z węzła analitycznego certyfikat urzędu certyfikacji (\file{default\_cert.pem}). Plik pobrano za pośrednictwem polecenia \code{Invoke-WebRequest} i zapisano lokalnie jako \file{default\_ca.crt} (rysunek~\ref{fig:win_cert_dl}). Następnie zweryfikowano parametry certyfikatu (wystawca \file{inetsim.org}, ważność 2026--2036, rysunek~\ref{fig:win_cert_vw}) oraz zainstalowano go w magazynie zaufanych głównych urzędów certyfikacji (\file{Cert:\textbackslash LocalMachine\textbackslash Root}). Działanie to zapobiega przerywaniu sesji sieciowych przez mechanizmy weryfikacji certyfikatów systemu Windows podczas emulacji protokołów HTTPS, FTPS czy SMTPS przez węzeł \code{REMnux}.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.56\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_cert_download.png}
+        \caption{Pobranie certyfikatu z węzła REMnux za pomocą PowerShell}\label{fig:win_cert_dl}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.40\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_cert_view.png}
+        \caption{Weryfikacja certyfikatu CA inetsim.org}\label{fig:win_cert_vw}
+    \end{subfigure}
+    \caption{Pobranie i weryfikacja certyfikatu urzędu certyfikacji symulatora INetSim na stacji ofiary}\label{fig:win_cert_install}
+\end{figure}
+
 \section{Węzeł REMnux i narzędzia analityczne}\label{sec:konfiguracja_remnux}
 
 Druga maszyna wirtualna, pracująca pod kontrolą wyspecjalizowanej dystrybucji \code{REMnux}, pełni jednocześnie funkcję lokalnego emulatora sieci oraz stacji roboczej do analizy zebranego materiału dowodowego.
@@ -145,7 +165,7 @@ W pierwszej kolejności na węźle analitycznym skonfigurowano dedykowany interf
 
 \Figure[0.70]{remnux_ip_ens33.png}{Weryfikacja konfiguracji interfejsu sieciowego ens33 na węźle REMnux z adresem 192.168.100.1/24}{fig:remnux_ip}
 
-Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem C2. Na węźle \code{REMnux} skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy (\code{192.168.100.1}) i odpowiada na ruch przychodzący ze stacji ofiary. W pliku konfiguracyjnym \code{/etc/inetsim/inetsim.conf}:
+Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem C2. Na węźle skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy i odpowiada na ruch przychodzący ze stacji ofiary. W pliku konfiguracyjnym \file{/etc/inetsim/inetsim.conf}:
 \begin{itemize}
     \item powiązano nasłuch wszystkich symulowanych usług z adresem laboratoryjnym (\code{service\_bind\_address 192.168.100.1}, rysunek~\ref{fig:inetsim_conf_bind}),
     \item zdefiniowano fałszywy zwrotny adres w zapytaniach DNS (\code{dns\_default\_ip 192.168.100.1}, rysunek~\ref{fig:inetsim_conf_dns}), co wymusza przekierowanie całego ruchu domenowego generowanego przez próbkę na lokalny węzeł badawczy (\textit{DNS Sinkholing}),
@@ -171,14 +191,14 @@ Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunk
         \includegraphics[width=\linewidth]{images/inetsim_conf_services.png}
         \caption{Aktywacja wymaganych modułów}\label{fig:inetsim_conf_services}
     \end{subfigure}
-    \caption{Konfiguracja parametrów emulacji sieci w pliku \code{/etc/inetsim/inetsim.conf}}\label{fig:inetsim_conf}
+    \caption{Konfiguracja parametrów emulacji sieci w pliku \file{/etc/inetsim/inetsim.conf}}\label{fig:inetsim_conf}
 \end{figure}
 
 W celu zapewnienia bezkonfliktowego uruchomienia serwera DNS na porcie 53 UDP/TCP, na węźle \code{REMnux} wyłączono lokalną usługę \code{systemd-resolved} oraz dezaktywowano zaporę sieciową \code{ufw}. Prawidłowy start symulatora z aktywną obsługą DNS, protokołów webowych oraz pocztowych przedstawiono na rysunku~\ref{fig:inetsim_running}.
 
 \Figure[0.65]{inetsim_running_services.png}{Pomyślne uruchomienie symulatora INetSim na adresie 192.168.100.1 z aktywnym procesem DNS (PID 3806)}{fig:inetsim_running}
 
-Cały ruch przechodzący przez interfejs sieciowy węzła \code{REMnux} jest równolegle zapisywany do plików \code{.pcap} za pomocą narzędzia \code{tshark}. Zebrane zrzuty pamięci, dzienniki zdarzeń oraz pakiety sieciowe następnie przetwarzane przy użyciu zestawu narzędzi podzielonego według zadań analitycznych (tabela \ref{tab:stos_narzedziowy}).
+Cały ruch przechodzący przez interfejs sieciowy węzła \code{REMnux} jest równolegle zapisywany do plików \file{.pcap} za pomocą narzędzia \code{tshark}. Zebrane zrzuty pamięci, dzienniki zdarzeń oraz pakiety sieciowe następnie przetwarzane przy użyciu zestawu narzędzi podzielonego według zadań analitycznych (tabela \ref{tab:stos_narzedziowy}).
 
 \begin{table}[H]
 \centering
@@ -193,7 +213,7 @@ Analiza statyczna & PEstudio, FLOSS & Wstępna ocena struktury plików wykonywal
 \addlinespace
 Analiza pamięci RAM & Volatility \cite{volatility} & Przegląd listy procesów, wykrywanie podejrzanych obszarów pamięci wykonywalnej, identyfikacja wstrzyknięć kodu oraz zrzucanie ładunków z RAM. \\
 \addlinespace
-Analiza logów zdarzeń & Hayabusa \cite{hayabusa_docs} & Szybkie przeszukiwanie plików \code{.evtx} za pomocą reguł detekcyjnych oraz generowanie chronologicznej osi czasu zdarzeń. \\
+Analiza logów zdarzeń & Hayabusa \cite{hayabusa_docs} & Szybkie przeszukiwanie plików \file{.evtx} za pomocą reguł detekcyjnych oraz generowanie chronologicznej osi czasu zdarzeń. \\
 \addlinespace
 Inżynieria detekcji & YARA \cite{yara_docs} & Tworzenie i testowanie reguł dopasowujących wzorce bajtowe oraz tekstowe w zrzutach pamięci i wyodrębnionych plikach. \\
 \addlinespace
@@ -204,7 +224,7 @@ Inżynieria detekcji & Sigma \cite{sigma_hq} & Tworzenie i testowanie reguł wyk
 
 \section{Przebieg badania i walidacja reguł}\label{sec:przebieg_badania}
 
-Dla zachowania powtarzalności oraz spójności zebranych danych każda próbka złośliwego oprogramowania jest badana według tej samej procedury przedstawionej w tabeli \ref{tab:cykl_badawczy}. Kolejność zabezpieczania artefaktów została ustalona zgodnie z zasadą kolejności ulotności (\textit{Order of Volatility}, RFC 3227 \cite{rfc3227}) - w pierwszej kolejności zamrażany jest stan maszyny wirtualnej i pobierany jest obraz pamięci RAM (\code{.vmem}), a dopiero w kolejnym kroku eksportowane są pliki dzienników z dysku (\code{.evtx}). Dzięki temu czynności związane z eksportem logów nie nadpisują zawartości pamięci operacyjnej.
+Dla zachowania powtarzalności oraz spójności zebranych danych każda próbka złośliwego oprogramowania jest badana według tej samej procedury przedstawionej w tabeli \ref{tab:cykl_badawczy}. Kolejność zabezpieczania artefaktów została ustalona zgodnie z zasadą kolejności ulotności (\textit{Order of Volatility}, RFC 3227 \cite{rfc3227}) - w pierwszej kolejności zamrażany jest stan maszyny wirtualnej i pobierany jest obraz pamięci RAM (\file{.vmem}), a dopiero w kolejnym kroku eksportowane są pliki dzienników z dysku (\file{.evtx}). Dzięki temu czynności związane z eksportem logów nie nadpisują zawartości pamięci operacyjnej.
 
 \begin{table}[H]
 \centering
@@ -221,19 +241,42 @@ Dla zachowania powtarzalności oraz spójności zebranych danych każda próbka 
 \addlinespace
 3 & Uruchomienie próbki & Przeniesienie badanej próbki na stację ofiary, jej uruchomienie oraz odczekanie na wykonanie operacji. \\
 \addlinespace
-4 & Zrzut pamięci RAM & Wstrzymanie maszyny wirtualnej lub utworzenie migawki z poziomu hiperwizora i zabezpieczenie pliku \code{.vmem} przed wykonaniem jakichkolwiek poleceń w systemie gościa. \\
+4 & Zrzut pamięci RAM & Wstrzymanie maszyny wirtualnej lub utworzenie migawki z poziomu hiperwizora i zabezpieczenie pliku \file{.vmem} przed wykonaniem jakichkolwiek poleceń w systemie gościa. \\
 \addlinespace
-5 & Pobranie logów i ruchu & Zatrzymanie zapisu pliku \code{.pcap} na węźle REMnux oraz wyeksportowanie dzienników \code{.evtx} ze stacji Windows. \\
+5 & Pobranie logów i ruchu & Zatrzymanie zapisu pliku \file{.pcap} na węźle REMnux oraz wyeksportowanie dzienników \file{.evtx} ze stacji Windows. \\
 \addlinespace
-6 & Obliczenie sum kontrolnych & Wyznaczenie skrótów dla zebranych plików dowodowych (\code{.vmem}, \code{.evtx}, \code{.pcap}) i przekazanie ich do analizy. \\
+6 & Obliczenie sum kontrolnych & Wyznaczenie skrótów dla zebranych plików dowodowych (\file{.vmem}, \file{.evtx}, \file{.pcap}) i przekazanie ich do analizy. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Po zebraniu materiału dowodowego wyniki z poszczególnych źródeł są ze sobą łączone. Punktem wspólnym pomiędzy zrzutem pamięci RAM, logami \code{Sysmon} oraz ruchem sieciowym \code{.pcap} są identyfikatory procesów (\code{PID} oraz \code{ProcessGuid}), numery portów i adresy sieciowe oraz znaczniki czasu w strefie UTC. Pozwala to powiązać konkretny proces widoczny w logach systemowych z wstrzykniętym do jego pamięci kodem oraz ruchem sieciowym, który ten proces wygenerował.
+Po zakończeniu pełnej konfiguracji stacji ofiary oraz węzła analitycznego utworzono punkty przywracania stanu bazowego (\textit{Snapshots}) w oprogramowaniu VMware Workstation Pro (rysunek~\ref{fig:snapshots}):
+\begin{itemize}
+    \item \textbf{Stacja ofiary (Windows 10):} migawka o nazwie \code{Clean\_Baseline\_Preinfection} (rysunek~\ref{fig:snap_win}), utrwalająca czysty stan systemu z aktywną telemetrią \code{Sysmon}, zainstalowanym certyfikatem \file{default\_ca.crt} oraz wyłączonymi mechanizmami ochronnymi,
+    \item \textbf{Węzeł analityczny (REMnux):} migawka o nazwie \code{Clean\_Gateway} (rysunek~\ref{fig:snap_remnux}), reprezentująca gotowość symulatora \code{INetSim} do emulacji usług i przekierowywania ruchu sieciowego.
+\end{itemize}
+Punkty te gwarantują pełną powtarzalność badań --- po zakończeniu analizy każdej próbki obie maszyny wirtualne są natychmiast przywracane do stanu czystego przed kolejną detonacją.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_snapshot.png}
+        \caption{Migawka Clean\_Baseline\_Preinfection (Windows 10)}\label{fig:snap_win}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/remnux_snapshot.png}
+        \caption{Migawka Clean\_Gateway (REMnux)}\label{fig:snap_remnux}
+    \end{subfigure}
+    \caption{Utworzenie czystych migawek bazowych w menedżerze migawek VMware Workstation}\label{fig:snapshots}
+\end{figure}
+
+Po zebraniu materiału dowodowego wyniki z poszczególnych źródeł są ze sobą łączone. Punktem wspólnym pomiędzy zrzutem pamięci RAM, logami \code{Sysmon} oraz ruchem sieciowym \file{.pcap} są identyfikatory procesów (\code{PID} oraz \code{ProcessGuid}), numery portów i adresy sieciowe oraz znaczniki czasu w strefie UTC. Pozwala to powiązać konkretny proces widoczny w logach systemowych z wstrzykniętym do jego pamięci kodem oraz ruchem sieciowym, który ten proces wygenerował.
 
 Na podstawie zidentyfikowanych artefaktów tworzone są reguły detekcyjne \code{YARA} oraz \code{Sigma}. Każda reguła podlega dwuetapowej weryfikacji:
 \begin{itemize}
-    \item \textbf{Test wykrywalności (\textit{True Positive}):} sprawdzenie, czy reguła poprawnie wykrywa zagrożenie na zebranym materiale poinfekcyjnym (zrzucie pamięci lub logach \code{.evtx} z zainfekowanej stacji).
+    \item \textbf{Test wykrywalności (\textit{True Positive}):} sprawdzenie, czy reguła poprawnie wykrywa zagrożenie na zebranym materiale poinfekcyjnym (zrzucie pamięci lub logach \file{.evtx} z zainfekowanej stacji).
     \item \textbf{Test fałszywych alarmów (\textit{False Positive}):} przeskanowanie tą samą regułą zrzutu pamięci oraz dzienników zdarzeń pochodzących z czystego, niezainfekowanego systemu bazowego w celu potwierdzenia, że reguła nie generuje błędnych trafień na standardowych procesach systemowych.
 \end{itemize}
