@@ -16,7 +16,7 @@
 
 % \Figure[szerokość]{plik_w_images}{podpis}{etykieta}
 \newcommand{\Figure}[4][0.9]{%
-  \begin{figure}[H]
+  \begin{figure}
     \centering
     \IfFileExists{images/#2}{%
       \includegraphics[width=#1\linewidth, height=0.75\textheight, keepaspectratio]{images/#2}%

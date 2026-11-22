@@ -181,7 +181,7 @@
 % \TikzFigure[szerokość]{plik_tex_w_images}{podpis}{etykieta}
 % Domyślnie skaluje diagram do 0.9\linewidth; pusty argument opcjonalny [] zachowuje skalę 1:1.
 \newcommand{\TikzFigure}[4][0.9]{%
-  \begin{figure}[H]
+  \begin{figure}
     \centering
     \IfFileExists{images/#2}{%
       \IfEmpty{#1}{%
