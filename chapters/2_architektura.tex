@@ -42,16 +42,63 @@ Zastosowanie środowiska \code{VMware Workstation Pro} zapewnia dwie korzyści i
 
 \section{Przygotowanie stacji Windows}\label{sec:konfiguracja_windows}
 
-Na stacji ofiary z systemem \code{Windows 10 x64} wprowadzono zmiany konfiguracyjne mające na celu umożliwienie pełnego wykonania złośliwego oprogramowania oraz zarejestrowanie wszystkich jego działań w dziennikach systemowych.
+Na stacji ofiary z systemem \code{Windows 10 x64} wprowadzono zmiany konfiguracyjne mające na celu zapewnienie łączności w wydzielonej podsieci oraz umożliwienie pełnego wykonania złośliwego oprogramowania bez ingerencji mechanizmów ochronnych.
 
-W pierwszej kolejności wyłączono wbudowane mechanizmy ochronne, które mogłyby zablokować uruchomienie próbki lub usunąć jej komponenty w trakcie działania:
+W pierwszej kolejności skonfigurowano statyczne parametry protokołu IPv4 (rysunek~\ref{fig:win_ipv4}): adres stacji \code{192.168.100.10}, maskę podsieci \code{255.255.255.0} oraz bramę domyślną i serwer DNS wskazujące na węzeł analityczny \code{REMnux} (\code{192.168.100.1}). Poprawność komunikacji oraz przekierowania zapytań domenowych przez \code{INetSim} potwierdzono poleceniami \code{ping} oraz \code{nslookup} (rysunek~\ref{fig:win_connectivity}).
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_ipv4_config.png}
+        \caption{Statyczna konfiguracja IPv4}\label{fig:win_ipv4}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.51\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_nslookup_ping.png}
+        \caption{Weryfikacja DNS i łączności z bramą}\label{fig:win_connectivity}
+    \end{subfigure}
+    \caption{Konfiguracja sieciowa oraz weryfikacja połączenia z węzłem REMnux na stacji ofiary}\label{fig:win_net_setup}
+\end{figure}
+
+Następnie wyłączono wbudowane mechanizmy zabezpieczeń systemu operacyjnego (rysunek~\ref{fig:win_sec_disabled}):
 \begin{itemize}
-    \item dezaktywowano ochronę w czasie rzeczywistym, monitorowanie behawioralne oraz ochronę przed naruszeniami w usłudze \code{Windows Defender},
-    \item wyłączono blokady wykonywania skryptów \code{PowerShell} oraz skanowanie za pośrednictwem interfejsu \code{AMSI}, co pozwala na wykonanie obfuskowanych skryptów ładujących,
-    \item wyłączono zaporę systemową oraz usługę automatycznych aktualizacji, aby zapewnić swobodny ruch sieciowy w kierunku bramy \code{REMnux} i wyeliminować szum sieciowy generowany przez sam system operacyjny.
+    \item dezaktywowano ochronę w czasie rzeczywistym oraz ochronę dostarczaną z chmury w usłudze \code{Windows Defender} (rysunek~\ref{fig:win_def_off}),
+    \item wyłączono filtry \code{SmartScreen} dla aplikacji i plików (rysunek~\ref{fig:win_smart_off}),
+    \item wyłączono zaporę ogniową \code{Windows Defender Firewall} dla wszystkich profili sieciowych (rysunek~\ref{fig:win_fw_off}),
+    \item zatrzymano usługę automatycznych aktualizacji \code{wuauserv} (rysunek~\ref{fig:win_upd_off}), eliminując zbędny ruch sieciowy w trakcie badań.
 \end{itemize}
 
-W drugim kroku skonfigurowano rozszerzoną rejestrację zdarzeń. Standardowe dzienniki systemu Windows nie rejestrują szczegółowych operacji na procesach i pamięci, dlatego na stacji zainstalowano usługę \code{Sysmon} \cite{russinovich_sysmon} z konfiguracją opartą na profilu \code{Sysmon-Modular} \cite{sysmon_modular}. Zestawienie najważniejszych monitorowanych kategorii zdarzeń przedstawiono w tabeli \ref{tab:sysmon_events}. Dodatkowo włączono rejestrowanie treści wykonywanych bloków skryptowych \code{PowerShell} oraz zwiększono maksymalny rozmiar buforów dzienników zdarzeń (\code{.evtx}), aby zapobiec nadpisaniu logów podczas intensywnej aktywności próbki.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_defender_off.png}
+        \caption{Wyłączenie ochrony w usłudze Defender}\label{fig:win_def_off}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_smartscreen_off.png}
+        \caption{Dezaktywacja filtrów SmartScreen}\label{fig:win_smart_off}
+    \end{subfigure}
+    \par\vspace{0.8em}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_firewall_off.png}
+        \caption{Dezaktywacja zapory sieciowej}\label{fig:win_fw_off}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_update_stopped.png}
+        \caption{Zatrzymanie usługi Windows Update}\label{fig:win_upd_off}
+    \end{subfigure}
+    \caption{Dezaktywacja wbudowanych mechanizmów ochronnych i aktualizacji systemowych}\label{fig:win_sec_disabled}
+\end{figure}
+
+W kolejnym kroku konfigurowana jest rozszerzona rejestracja zdarzeń. Standardowe dzienniki systemu Windows nie rejestrują szczegółowych operacji na procesach i pamięci, dlatego na stacji instalowana jest usługa \code{Sysmon} \cite{russinovich_sysmon} z konfiguracją opartą na profilu \code{Sysmon-Modular} \cite{sysmon_modular}. Zestawienie najważniejszych monitorowanych kategorii zdarzeń przedstawiono w tabeli \ref{tab:sysmon_events}. Dodatkowo włączono rejestrowanie treści wykonywanych bloków skryptowych \code{PowerShell} oraz zwiększono maksymalny rozmiar buforów dzienników zdarzeń (\code{.evtx}), aby zapobiec nadpisaniu logów podczas intensywnej aktywności próbki.
 
 \begin{table}[H]
 \centering
