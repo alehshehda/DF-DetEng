@@ -98,7 +98,23 @@ Następnie wyłączono wbudowane mechanizmy zabezpieczeń systemu operacyjnego (
     \caption{Dezaktywacja wbudowanych mechanizmów ochronnych i aktualizacji systemowych}\label{fig:win_sec_disabled}
 \end{figure}
 
-W kolejnym kroku konfigurowana jest rozszerzona rejestracja zdarzeń. Standardowe dzienniki systemu Windows nie rejestrują szczegółowych operacji na procesach i pamięci, dlatego na stacji instalowana jest usługa \code{Sysmon} \cite{russinovich_sysmon} z konfiguracją opartą na profilu \code{Sysmon-Modular} \cite{sysmon_modular}. Zestawienie najważniejszych monitorowanych kategorii zdarzeń przedstawiono w tabeli \ref{tab:sysmon_events}. Dodatkowo włączono rejestrowanie treści wykonywanych bloków skryptowych \code{PowerShell} oraz zwiększono maksymalny rozmiar buforów dzienników zdarzeń (\code{.evtx}), aby zapobiec nadpisaniu logów podczas intensywnej aktywności próbki.
+W kolejnym kroku skonfigurowano rozszerzoną rejestrację zdarzeń telemetrycznych. Standardowe dzienniki systemu Windows nie rejestrują szczegółowych operacji na procesach i pamięci, dlatego na stacji zainstalowano usługę \code{Sysmon} \cite{russinovich_sysmon} z konfiguracją opartą na profilu \code{Sysmon-Modular} \cite{sysmon_modular} (rysunek~\ref{fig:win_sysmon_inst}). Prawidłowy start sterownika \code{SysmonDrv} oraz rejestrację zdarzeń w dedykowanym kanale \code{Microsoft-Windows-Sysmon/Operational} potwierdzono w podglądzie zdarzeń (rysunek~\ref{fig:win_sysmon_log}). Zestawienie najważniejszych monitorowanych kategorii zdarzeń przedstawiono w tabeli \ref{tab:sysmon_events}. Dodatkowo włączono rejestrowanie treści wykonywanych bloków skryptowych \code{PowerShell} oraz zwiększono maksymalny rozmiar buforów dzienników zdarzeń (\code{.evtx}), aby zapobiec nadpisaniu logów podczas intensywnej aktywności próbki.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.52\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_sysmon_install.png}
+        \caption{Instalacja usługi Sysmon64 z regułami XML}\label{fig:win_sysmon_inst}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/win_sysmon_eventvwr.png}
+        \caption{Rejestracja zdarzeń w kanale Operational}\label{fig:win_sysmon_log}
+    \end{subfigure}
+    \caption{Pomyślna instalacja usługi Sysmon oraz weryfikacja rejestracji zdarzeń w systemie Windows}\label{fig:win_sysmon}
+\end{figure}
 
 \begin{table}[H]
 \centering
