@@ -21,18 +21,18 @@ Windows 10 x64 & \code{192.168.100.10} & Stacja ofiary & Uruchamianie badanych p
 \end{tabularx}
 \end{table}
 
-Komunikacja pomiędzy maszynami odbywa się w wydzielonym, niestandardowym segmencie sieci wirtualnej \code{VMnet2} (\textit{Host-only}). W konfiguracji wirtualnego przełącznika (\code{Virtual Network Editor}, rysunek~\ref{fig:vmware_vnet}) wprowadzono następujące restrykcje:
+Komunikacja pomiędzy maszynami odbywa się w wydzielonym, niestandardowym segmencie sieci wirtualnej \code{VMnetX} (\textit{Host-only}). W konfiguracji wirtualnego przełącznika (\code{Virtual Network Editor}, rysunek~\ref{fig:vmware_vnet}) wprowadzono następujące restrykcje:
 \begin{itemize}
     \item wyłączono wbudowany serwer \code{DHCP} (\textit{Use local DHCP service to distribute IP address to VMs}), co wymusza statyczną alokację adresów IP i eliminuje niepożądany rozgłoszeniowy ruch sieciowy,
     \item odpięto wirtualny interfejs systemu gospodarza (\textit{Connect a host virtual adapter to this network}), uniemożliwiając bezpośrednią komunikację na poziomie warstwy L2/L3 pomiędzy badaną stacją a systemem fizycznym analityka,
     \item zdefiniowano podsieć laboratoryjną \code{192.168.100.0/24} z maską \code{255.255.255.0}.
 \end{itemize}
 
-\Figure[0.75]{vmware_vnet_vmnet2.png}{Konfiguracja odizolowanego segmentu sieci wirtualnej VMnet2 w edytorze Virtual Network Editor}{fig:vmware_vnet}
+\Figure[0.75]{vmware_vnet_vmnet2.png}{Konfiguracja odizolowanego segmentu sieci wirtualnej VMnetX w edytorze Virtual Network Editor}{fig:vmware_vnet}
 
-Obie maszyny wirtualne (\code{REMnux} oraz \code{Windows 10}) zostały przypisane bezpośrednio do tego samego segmentu poprzez ustawienie karty sieciowej w tryb \textit{Custom: Specific virtual network} $\rightarrow$ \code{VMnet2} (rysunek~\ref{fig:vmware_nic}). W rezultacie stacja ofiary widzi w sieci lokalnej wyłącznie węzeł analityczny \code{REMnux}.
+Obie maszyny wirtualne (\code{REMnux} oraz \code{Windows 10}) zostały przypisane bezpośrednio do tego samego segmentu poprzez ustawienie karty sieciowej w tryb \textit{Custom: Specific virtual network} $\rightarrow$ \code{VMnetX} (rysunek~\ref{fig:vmware_nic}). W rezultacie stacja ofiary widzi w sieci lokalnej wyłącznie węzeł analityczny \code{REMnux}.
 
-\Figure[0.60]{vmware_nic_vmnet2.png}{Przypisanie wirtualnej karty sieciowej maszyny do dedykowanego segmentu VMnet2}{fig:vmware_nic}
+\Figure[0.60]{vmware_nic_vmnet2.png}{Przypisanie wirtualnej karty sieciowej maszyny do dedykowanego segmentu VMnetX}{fig:vmware_nic}
 
 Zastosowanie środowiska \code{VMware Workstation Pro} zapewnia dwie korzyści istotne dla analizy śledczej:
 \begin{itemize}
