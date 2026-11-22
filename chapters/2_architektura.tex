@@ -76,14 +76,26 @@ W drugim kroku skonfigurowano rozszerzoną rejestrację zdarzeń. Standardowe dz
 
 \section{Węzeł REMnux i narzędzia analityczne}\label{sec:konfiguracja_remnux}
 
-Druga maszyna wirtualna, pracująca pod kontrolą dystrybucji \code{REMnux}, pełni jednocześnie funkcję lokalnego emulatora sieci oraz stacji roboczej do analizy zebranego materiału dowodowego.
+Druga maszyna wirtualna, pracująca pod kontrolą wyspecjalizowanej dystrybucji \code{REMnux}, pełni jednocześnie funkcję lokalnego emulatora sieci oraz stacji roboczej do analizy zebranego materiału dowodowego.
 
-Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem C2. Na węźle \code{REMnux} skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy (\code{192.168.100.1}) i odpowiada na ruch przychodzący ze stacji ofiary:
+W pierwszej kolejności na węźle analitycznym skonfigurowano dedykowany interfejs sieciowy \code{ens33}, przypisując mu statyczny adres IP \code{192.168.100.1/24} (rysunek~\ref{fig:remnux_ip}), stanowiący bramę domyślną oraz serwer DNS dla stacji ofiary.
+
+\Figure[0.85]{remnux_ip_ens33.png}{Weryfikacja konfiguracji interfejsu sieciowego ens33 na węźle REMnux z adresem 192.168.100.1/24}{fig:remnux_ip}
+
+Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem C2. Na węźle \code{REMnux} skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy (\code{192.168.100.1}) i odpowiada na ruch przychodzący ze stacji ofiary. W pliku konfiguracyjnym \file{/etc/inetsim/inetsim.conf}:
 \begin{itemize}
-    \item przekierowuje wszystkie zapytania DNS na adres bramy analitycznej,
-    \item obsługuje połączenia HTTP oraz HTTPS (po uprzednim dodaniu certyfikatu urzędu certyfikacji \code{INetSim} do magazynu zaufanych urzędów na stacji Windows, co zapobiega odrzucaniu połączeń szyfrowanych),
-    \item przyjmuje połączenia na pozostałych standardowych portach usług aplikacyjnych.
+    \item powiązano nasłuch wszystkich symulowanych usług z adresem laboratoryjnym (\code{service\_bind\_address 192.168.100.1}, rysunek~\ref{fig:inetsim_conf_bind}),
+    \item zdefiniowano fałszywy zwrotny adres w zapytaniach DNS (\code{dns\_default\_ip 192.168.100.1}, rysunek~\ref{fig:inetsim_conf_dns}), co wymusza przekierowanie całego ruchu domenowego generowanego przez próbkę na lokalny węzeł badawczy (\textit{DNS Sinkholing}),
+    \item jawnie aktywowano niezbędne moduły aplikacyjne (\code{start\_service dns}, \code{http}, \code{https}, \code{smtp}, \code{ftp}, rysunek~\ref{fig:inetsim_conf_services}).
 \end{itemize}
+
+\Figure[0.65]{inetsim_conf_bind.png}{Konfiguracja adresu nasłuchu usług (service\_bind\_address) w pliku inetsim.conf}{fig:inetsim_conf_bind}
+
+\Figure[0.65]{inetsim_conf_dns.png}{Konfiguracja domyślnego adresu zwrotnego dla zapytań DNS (dns\_default\_ip) w pliku inetsim.conf}{fig:inetsim_conf_dns}
+
+W celu zapewnienia bezkonfliktowego uruchomienia serwera DNS na porcie 53 UDP/TCP, na węźle \code{REMnux} wyłączono lokalną usługę \code{systemd-resolved} oraz dezaktywowano zaporę sieciową \code{ufw}. Prawidłowy start symulatora z aktywną obsługą DNS, protokołów webowych oraz pocztowych przedstawiono na rysunku~\ref{fig:inetsim_running}.
+
+\Figure[0.75]{inetsim_running_services.png}{Pomyślne uruchomienie symulatora INetSim na adresie 192.168.100.1 z aktywnym procesem DNS (PID 3806)}{fig:inetsim_running}
 
 Cały ruch przechodzący przez interfejs sieciowy węzła \code{REMnux} jest równolegle zapisywany do plików \code{.pcap} za pomocą narzędzia \code{tshark}. Zebrane zrzuty pamięci, dzienniki zdarzeń oraz pakiety sieciowe następnie przetwarzane przy użyciu zestawu narzędzi podzielonego według zadań analitycznych (tabela \ref{tab:stos_narzedziowy}).
 
