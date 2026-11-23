@@ -91,7 +91,7 @@ Następnie wyłączono wbudowane mechanizmy zabezpieczeń systemu operacyjnego:
 
 \Figure[0.50]{win_update_stopped.png}{Zatrzymanie usługi automatycznych aktualizacji Windows Update}{fig:win_upd_off}
 
-W kolejnym kroku skonfigurowano rozszerzoną rejestrację zdarzeń telemetrycznych. Standardowe dzienniki systemu Windows nie rejestrują szczegółowych operacji na procesach i pamięci, dlatego na stacji zainstalowano usługę \code{Sysmon} \cite{russinovich_sysmon} z konfiguracją opartą na profilu \code{Sysmon-Modular} \cite{sysmon_modular} (rysunek \ref{fig:win_sysmon_inst}). Prawidłowy start  \code{SysmonDrv} oraz rejestrację zdarzeń w dedykowanym kanale \code{Microsoft-Windows-Sysmon/Operational} potwierdzono w podglądzie zdarzeń (rysunek \ref{fig:win_sysmon_log}). Zestawienie najważniejszych monitorowanych kategorii zdarzeń przedstawiono w tabeli \ref{tab:sysmon_events}. Dodatkowo włączono rejestrowanie treści wykonywanych bloków skryptowych \code{PowerShell} oraz zwiększono maksymalny rozmiar buforów dzienników zdarzeń (\code{.evtx}), aby zapobiec nadpisaniu logów podczas intensywnej aktywności próbki.
+W kolejnym kroku skonfigurowano rozszerzoną rejestrację zdarzeń telemetrycznych. Standardowe dzienniki systemu Windows nie rejestrują szczegółowych operacji na procesach i pamięci, dlatego na stacji zainstalowano usługę \code{Sysmon} \cite{russinovich_sysmon} z konfiguracją opartą na profilu \code{Sysmon-Modular} \cite{sysmon_modular} (rysunek \ref{fig:win_sysmon_inst}). Prawidłowy start \code{SysmonDrv} oraz rejestrację zdarzeń w dedykowanym kanale \code{Microsoft-Windows-Sysmon/Operational} potwierdzono w podglądzie zdarzeń (rysunek \ref{fig:win_sysmon_log}). Zestawienie najważniejszych monitorowanych kategorii zdarzeń przedstawiono w tabeli \ref{tab:sysmon_events}. Dodatkowo włączono rejestrowanie treści wykonywanych bloków skryptowych \code{PowerShell} oraz zwiększono maksymalny rozmiar buforów dzienników zdarzeń (\code{.evtx}), aby zapobiec nadpisaniu logów podczas intensywnej aktywności próbki.
 
 \Figure[0.85]{win_sysmon_install.png}{Instalacja usługi Sysmon64 z plikiem konfiguracyjnym XML}{fig:win_sysmon_inst}
 
@@ -136,7 +136,7 @@ Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunk
 \begin{itemize}
     \item powiązano nasłuch wszystkich symulowanych usług z adresem laboratoryjnym (\code{service_bind_address 192.168.100.1}, rysunek \ref{fig:inetsim_conf_bind}),
     \item zdefiniowano fałszywy zwrotny adres w zapytaniach DNS (\code{dns_default_ip 192.168.100.1}, rysunek \ref{fig:inetsim_conf_dns}), co wymusza przekierowanie całego ruchu domenowego generowanego przez próbkę na lokalny węzeł badawczy (\textit{DNS Sinkholing}),
-    \item aktywowano przez \code{start_service} wymagane moduły aplikacyjne, rysunek \ref{fig:inetsim_conf_services}.
+    \item aktywowano przez \code{start_service} wymagane moduły aplikacyjne (rysunek \ref{fig:inetsim_conf_services}).
 \end{itemize}
 
 \begin{figure}
@@ -220,7 +220,7 @@ Dla zachowania powtarzalności oraz spójności zebranych danych każda próbka 
 Po zakończeniu konfiguracji obu maszyn w środowisku \code{VMware Workstation Pro} utworzono migawki bazowe (\textit{Snapshots}, rysunek \ref{fig:snapshots}):
 \begin{itemize}
     \item \textbf{Stacja ofiary (Windows 10):} migawka \code{Clean_Baseline_Preinfection} (rysunek \ref{fig:snap_win}), utrwalająca czysty stan systemu z aktywną telemetrią \code{Sysmon}, zainstalowanym certyfikatem \code{default_ca.crt} oraz wyłączonymi mechanizmami ochronnymi,
-    \item \textbf{Węzeł analityczny (REMnux):} migawka \code{Clean_Gateway} (rysunek \ref{fig:snap_remnux}), reprezentująca gotowość symulatora \code{INetSim} do emulacji usług i przekierowywania ruchu sieciowego.
+    \item \textbf{Węzeł analityczny (REMnux):} migawka \code{Clean_Gateway} (rysunek \ref{fig:snap_remnux}), utrwalająca skonfigurowany symulator \code{INetSim} gotowy do emulacji usług i przekierowywania ruchu sieciowego.
 \end{itemize}
 Pozwalają one przywrócić obie maszyny do czystego stanu przed uruchomieniem kolejnej próbki, zapewniając powtarzalność testów.
 
@@ -237,7 +237,7 @@ Pozwalają one przywrócić obie maszyny do czystego stanu przed uruchomieniem k
         \includegraphics[width=\linewidth]{images/remnux_snapshot.png}
         \caption{Migawka REMnux}\label{fig:snap_remnux}
     \end{subfigure}
-    \caption{Utworzenie  migawek bazowych w VMware Workstation Pro}\label{fig:snapshots}
+    \caption{Utworzenie migawek bazowych w VMware Workstation Pro}\label{fig:snapshots}
 \end{figure}
 
 Po zebraniu materiału dowodowego wyniki z poszczególnych źródeł są ze sobą łączone. Punktem wspólnym pomiędzy zrzutem pamięci RAM, logami \code{Sysmon} oraz ruchem sieciowym \code{.pcap} są identyfikatory procesów (\code{PID} oraz \code{ProcessGuid}), numery portów i adresy sieciowe oraz znaczniki czasu w strefie UTC. Pozwala to powiązać konkretny proces widoczny w logach systemowych ze wstrzykniętym do jego pamięci kodem oraz ruchem sieciowym, który ten proces wygenerował.
