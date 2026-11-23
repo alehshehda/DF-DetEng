@@ -1,8 +1,26 @@
-\chapter{Studium przypadku I: Infostealer LummaC2}\label{ch:studium_przypadku_1}
+\chapter{Studium przypadku I: Agent Tesla}\label{ch:studium_przypadku_1}
 
 \section{Charakterystyka badanej próbki}\label{sec:cs1_charakterystyka}
 
-\section{Analiza statyczna i uruchomienie}\label{sec:cs1_triage}
+\subsection{Charakterystyka zagrożenia (Agent Tesla)}
+Do przeprowadzenia pierwszego studium przypadku wybrano próbkę złośliwego oprogramowania z rodziny \textbf{Agent Tesla}. Jest to zaawansowany trojan szpiegujący oraz infostealer rozwijany od 2014 roku w modelu \textit{Malware-as-a-Service} (MaaS), zaimplementowany na platformie Microsoft .NET. 
+
+Zagrożenie to specjalizuje się w nieuprawnionym pozyskiwaniu danych uwierzytelniających z popularnych aplikacji klienckich:
+\begin{itemize}
+    \item przeglądarek internetowych (m.in. Google Chrome, Microsoft Edge, Mozilla Firefox) poprzez odczyt plików baz danych \file{Login Data} oraz deszyfrację kluczy za pomocą mechanizmu Windows DPAPI,
+    \item klientów pocztowych (Microsoft Outlook, Mozilla Thunderbird) oraz klientów protokołów transferu plików (FileZilla, WinSCP),
+    \item rejestrowaniu wprowadzanych znaków z klawiatury (\textit{keylogger}) oraz cyklicznym przechwytywaniu zawartości bufora schowka i zrzutów ekranu.
+\end{itemize}
+
+\subsection{Metodyka wykonania i zaciemniania kodu}
+Analizowany wariant opiera się na wieloetapowej procedurze infekcji mającej na celu ominięcie mechanizmów antywirusowych:
+\begin{enumerate}
+    \item \textbf{Wstrzykiwanie do procesów systemowych (\textit{Process Hollowing}):} pierwotny proces zrzuca ładunek binarny do pamięci operacyjnej, a następnie uruchamia w stanie zawieszonym legalny proces systemowy platformy .NET (np. kompilator Visual Basic \file{vbc.exe} lub narzędzie rejestracji modułów \file{RegAsm.exe}). Oryginalny kod procesu zostaje wymazany i zastąpiony rozszyfrowanym modułem szpiegującym.
+    \item \textbf{Utrwalenie obecności w systemie (\textit{Persistence}):} utworzenie wpisu w gałęzi rejestru \file{HKCU\Software\Microsoft\Windows\CurrentVersion\Run} lub rejestracja ukrytego zadania w Harmonogramie Zadań (\file{schtasks.exe}).
+    \item \textbf{Eksfiltracja danych:} transmisja zebranych informacji do infrastruktury dowodzenia (C2) z wykorzystaniem protokołu SMTP (tworzenie i wysyłka wiadomości e-mail na port \file{25/TCP} lub \file{587/TCP}) bądź żądań \file{HTTP POST}.
+\end{enumerate}
+
+\section{Analiza statyczna i uruchomienie próbki}\label{sec:cs1_triage}
 
 \section{Analiza pamięci RAM}\label{sec:cs1_analiza_ram}
 
@@ -17,3 +35,4 @@
 \subsection{Reguła Sigma i walidacja}\label{subsec:cs1_sigma}
 
 \subsection{Zestawienie IoC/IoA i mapowanie MITRE ATT\&CK}\label{subsec:cs1_ioc_mitre}
+
