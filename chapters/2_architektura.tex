@@ -132,11 +132,11 @@ Na węźle analitycznym interfejsowi sieciowemu \code{ens33} przypisano statyczn
 
 \Figure[0.90]{remnux_ip_ens33.png}{Weryfikacja konfiguracji interfejsu sieciowego ens33 na węźle REMnux}{fig:remnux_ip}
 
-Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem C2. Na węźle skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy i odpowiada na ruch przychodzący ze stacji ofiary. W pliku konfiguracyjnym \file{/etc/inetsim/inetsim.conf}:
+Wiele próbek złośliwego oprogramowania przed uruchomieniem głównego ładunku weryfikuje dostępność połączenia sieciowego lub próbuje nawiązać sesję z serwerem C2. Na węźle skonfigurowano usługę \code{INetSim}, która nasłuchuje na adresie bramy i odpowiada na ruch przychodzący ze stacji ofiary. W pliku \code{/etc/inetsim/inetsim.conf}:
 \begin{itemize}
-    \item powiązano nasłuch wszystkich symulowanych usług z adresem laboratoryjnym (\code{service\_bind\_address 192.168.100.1}, rysunek~\ref{fig:inetsim_conf_bind}),
-    \item zdefiniowano fałszywy zwrotny adres w zapytaniach DNS (\code{dns\_default\_ip 192.168.100.1}, rysunek~\ref{fig:inetsim_conf_dns}), co wymusza przekierowanie całego ruchu domenowego generowanego przez próbkę na lokalny węzeł badawczy (\textit{DNS Sinkholing}),
-    \item jawnie aktywowano niezbędne moduły aplikacyjne (\code{start\_service dns}, \code{http}, \code{https}, \code{smtp}, \code{ftp}, rysunek~\ref{fig:inetsim_conf_services}).
+    \item powiązano nasłuch wszystkich symulowanych usług z adresem laboratoryjnym (\code{service_bind_address 192.168.100.1}, rysunek \ref{fig:inetsim_conf_bind}),
+    \item zdefiniowano fałszywy zwrotny adres w zapytaniach DNS (\code{dns_default_ip 192.168.100.1}, rysunek \ref{fig:inetsim_conf_dns}), co wymusza przekierowanie całego ruchu domenowego generowanego przez próbkę na lokalny węzeł badawczy (\textit{DNS Sinkholing}),
+    \item aktywowano przez \code{start_service} wymagane moduły aplikacyjne (rysunek \ref{fig:inetsim_conf_services}).
 \end{itemize}
 
 \begin{figure}
